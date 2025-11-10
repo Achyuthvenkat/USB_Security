@@ -1,0 +1,90 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>USB Authorization Admin</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 24px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 16px; }
+    th, td { border: 1px solid #ccc; padding: 8px 10px; text-align: left; }
+    th { background: #f5f5f5; }
+    .hash { font-family: monospace; }
+  </style>
+</head>
+<body>
+  <h2>Register Authorized USB Devices</h2>
+  <form method="POST" action="/add">
+    <label>Hostname:</label>
+    <input type="text" name="hostname" required>
+    &nbsp;&nbsp;
+    <label>USB Serial Number:</label>
+    <input type="text" name="usb_serial" required>
+    &nbsp;&nbsp;
+    <label>Role:</label>
+    <select name="role" required>
+      <option value="encrypt">Encrypt</option>
+      <option value="decrypt">Decrypt</option>
+    </select>
+    &nbsp;&nbsp;
+    <input type="submit" value="Add Device">
+  </form>
+
+  <h3>Authorized Devices (Latest Key)</h3>
+<table>
+  <tr>
+    <th>ID</th>
+    <th>Hostname</th>
+    <th>USB Hash</th>
+    <th>Role</th>
+    <th>Latest Key</th>
+    <th>Created</th>
+    <th>Actions</th>
+  </tr>
+  {% for d in devices %}
+  <tr>
+    <td>{{ d['id'] }}</td>
+    <td>{{ d['hostname'] }}</td>
+    <td class="hash">{{ d['usb_serial_hash'][:24] }}...</td>
+    <td>{{ d['role'] }}</td>
+    <td class="hash">{{ d['aes_key'] if d['aes_key'] else '-' }}</td>
+    <td>{{ d['created_at'] if d['created_at'] else '-' }}</td>
+    <td>
+      <a href="/edit/{{ d['id'] }}">Edit</a> |
+      <a href="/delete/{{ d['id'] }}" onclick="return confirm('Delete this device?');">Delete</a>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+
+
+    <h3>All Encryption Keys (Audit)</h3>
+  <table>
+    <tr>
+      <th>Key ID</th><th>Hostname</th><th>Role</th><th>Key</th><th>Created</th>
+    </tr>
+    {% for k in keys %}
+    <tr>
+      <td>{{ k['key_id'] }}</td>
+      <td>{{ k['hostname'] }}</td>
+      <td>{{ k['role'] }}</td>
+      <td class="hash">{{ k['aes_key'] }}</td>
+      <td>{{ k['created_at'] }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+
+  <!-- Pagination Controls -->
+  <div style="margin-top: 16px; text-align: center;">
+    {% if total_pages > 1 %}
+      {% if page > 1 %}
+        <a href="/?page={{ page - 1 }}">« Prev</a>
+      {% endif %}
+      &nbsp;&nbsp; Page {{ page }} of {{ total_pages }} &nbsp;&nbsp;
+      {% if page < total_pages %}
+        <a href="/?page={{ page + 1 }}">Next »</a>
+      {% endif %}
+    {% endif %}
+  </div>
+
+</body>
+</html>
